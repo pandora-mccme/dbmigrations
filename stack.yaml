@@ -4,6 +4,5 @@ packages:
 - .
 
 extra-deps:
-- HsSyck-0.53
-- yaml-light-0.1.4
-- hasql-1.1.1
+- yaml-light-0.1.4@sha256:838b509c3a895339eea42b6524f46ba4e59c33e9f43537123cdaedfea09ca58d
+- HsSyck-0.53@sha256:a987ae2163811bdebfd4f2e2dcb7c75e9d2d68afd97d196f969d6a74786e43da

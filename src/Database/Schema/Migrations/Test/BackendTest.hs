@@ -9,11 +9,12 @@ module Database.Schema.Migrations.Test.BackendTest
     , tests
     ) where
 
-import Control.Monad ( forM_ )
-import Test.HUnit
+import           Control.Monad                        (forM_, void)
+import           Test.HUnit
 
-import Database.Schema.Migrations.Migration ( Migration(..), newMigration )
-import Database.Schema.Migrations.Backend ( Backend(..) )
+import           Database.Schema.Migrations.Backend   (Backend (..))
+import           Database.Schema.Migrations.Migration (Migration (..),
+                                                       newMigration)
 
 -- | A typeclass for database connections that needs to implemented for each
 -- specific database type to use this test.
@@ -102,7 +103,7 @@ applyMigrationFailure conn = do
         m2 = (newMigration "third") { mApply = "INVALID SQL" }
 
     -- Apply the migrations, ignore exceptions
-    ignoreSqlExceptions conn $ withTransaction conn $ \conn' -> do
+    void $ ignoreSqlExceptions conn $ withTransaction conn $ \conn' -> do
         let backend' = makeBackend conn'
         applyMigration backend' m1
         applyMigration backend' m2
@@ -127,7 +128,7 @@ revertMigrationFailure conn = do
 
     -- Revert the migrations, ignore exceptions; the revert will fail,
     -- but withTransaction will roll back.
-    ignoreSqlExceptions conn $ withTransaction conn $ \conn' -> do
+    void $ ignoreSqlExceptions conn $ withTransaction conn $ \conn' -> do
         let backend' = makeBackend conn'
         revertMigration backend' m2
         revertMigration backend' m1

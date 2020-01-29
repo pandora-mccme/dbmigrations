@@ -1,23 +1,24 @@
 {-# LANGUAGE ExistentialQuantification #-}
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE FlexibleContexts          #-}
+{-# LANGUAGE OverloadedStrings         #-}
 module Moo.CommandHandlers where
 
-import Moo.Core
-import Moo.CommandUtils
-import Control.Monad ( when, forM_ )
-import Data.ByteString.Char8 ( pack, unpack )
-import Data.Maybe ( isJust )
-import Data.Monoid ( (<>) )
-import Control.Monad.Reader ( asks )
-import System.Exit ( exitWith, ExitCode(..), exitSuccess )
-import qualified Data.Time.Clock as Clock
-import Control.Monad.Trans ( liftIO )
+import           Control.Monad                        (forM_, void, when)
+import           Control.Monad.Reader                 (asks)
+import           Control.Monad.Trans                  (liftIO)
+import           Data.ByteString.Char8                (pack, unpack)
+import           Data.Maybe                           (isJust)
+import           Data.Monoid                          ((<>))
+import qualified Data.Time.Clock                      as Clock
+import           Moo.CommandUtils
+import           Moo.Core
+import           System.Exit                          (ExitCode (..),
+                                                       exitSuccess, exitWith)
 
-import Database.Schema.Migrations.Store hiding (getMigrations)
-import Database.Schema.Migrations
-import Database.Schema.Migrations.Migration
-import Database.Schema.Migrations.Backend
+import           Database.Schema.Migrations
+import           Database.Schema.Migrations.Backend
+import           Database.Schema.Migrations.Migration
+import           Database.Schema.Migrations.Store     hiding (getMigrations)
 
 newCommand :: CommandHandler
 newCommand storeData = do
@@ -96,8 +97,8 @@ reinstallCommand storeData = do
       ensureBootstrappedBackend backend
       m <- lookupMigration storeData (pack migrationId)
 
-      revert m storeData backend
-      apply m storeData backend True
+      void $ revert m storeData backend
+      void $ apply m storeData backend True
 
       putStrLn "Migration successfully reinstalled."
 
@@ -117,7 +118,7 @@ applyCommand storeData = do
   withBackend $ \backend -> do
         ensureBootstrappedBackend backend
         m <- lookupMigration storeData (pack migrationId)
-        apply m storeData backend True
+        void $ apply m storeData backend True
         putStrLn "Successfully applied migrations."
 
 revertCommand :: CommandHandler
@@ -128,7 +129,7 @@ revertCommand storeData = do
   withBackend $ \backend -> do
       ensureBootstrappedBackend backend
       m <- lookupMigration storeData (pack migrationId)
-      revert m storeData backend
+      void $ revert m storeData backend
 
       putStrLn "Successfully reverted migrations."
 
@@ -144,10 +145,10 @@ testCommand storeData = do
         -- If the migration is already installed, remove it as part of
         -- the test
         when (not $ (pack migrationId) `elem` migrationNames) $
-             do revert m storeData backend
+             do void $ revert m storeData backend
                 return ()
         applied <- apply m storeData backend True
         forM_ (reverse applied) $ \migration -> do
                              revert migration storeData backend
-        revert m storeData backend
+        void $ revert m storeData backend
         putStrLn "Successfully tested migrations."
