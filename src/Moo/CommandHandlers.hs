@@ -8,7 +8,6 @@ import           Control.Monad.Reader                 (asks)
 import           Control.Monad.Trans                  (liftIO)
 import           Data.ByteString.Char8                (pack, unpack)
 import           Data.Maybe                           (isJust)
-import           Data.Monoid                          ((<>))
 import qualified Data.Time.Clock                      as Clock
 import           Moo.CommandUtils
 import           Moo.Core

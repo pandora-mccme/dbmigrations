@@ -19,9 +19,7 @@ import Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as BSC
 
 import Data.Typeable ( Typeable )
-import Data.Time.Clock ( UTCTime )
 import Data.Time () -- for UTCTime Show instance
-import qualified Data.Map as Map
 
 import Control.Monad ( filterM )
 import Control.Exception ( IOException, Exception(..), throw, catch )
@@ -34,8 +32,8 @@ import Database.Schema.Migrations.Migration
     )
 import Database.Schema.Migrations.Filesystem.Serialize
 import Database.Schema.Migrations.Store
+import Database.Schema.Migrations.Fields
 
-type FieldProcessor = ByteString -> Migration -> Maybe Migration
 
 data FilesystemStoreSettings = FSStore { storePath :: FilePath }
 
@@ -105,60 +103,3 @@ migrationFromPath pathStr = do
             Nothing -> throwFS $ "Error in " ++ (show path) ++ ": unrecognized field found"
             Just m -> return m
         _ -> throwFS $ "Error in " ++ (show path) ++ ": missing required field(s): " ++ (show missing)
-
-getFields :: YamlLight -> [(String, ByteString)]
-getFields (YMap mp) = map toPair $ Map.assocs mp
-    where
-      toPair (YStr k, YStr v) = (BSC.unpack k, v)
-      toPair (k, v) = throwFS $ "Error in YAML input; expected string key and string value, got " ++ (show (k, v))
-getFields _ = throwFS "Error in YAML input; expected mapping"
-
-missingFields :: [(String, ByteString)] -> [String]
-missingFields fs =
-    [ k | k <- requiredFields, not (k `elem` inputStrings) ]
-    where
-      inputStrings = map fst fs
-
--- |Given a migration and a list of parsed migration fields, update
--- the migration from the field values for recognized fields.
-migrationFromFields :: Migration -> [(String, ByteString)] -> Maybe Migration
-migrationFromFields m [] = Just m
-migrationFromFields m ((name, value):rest) = do
-  processor <- lookup name fieldProcessors
-  newM <- processor value m
-  migrationFromFields newM rest
-
-requiredFields :: [String]
-requiredFields = [ "Apply"
-                 , "Depends"
-                 ]
-
-fieldProcessors :: [(String, FieldProcessor)]
-fieldProcessors = [ ("Created", setTimestamp )
-                  , ("Description", setDescription )
-                  , ("Apply", setApply )
-                  , ("Revert", setRevert )
-                  , ("Depends", setDepends )
-                  ]
-
-setTimestamp :: FieldProcessor
-setTimestamp value m = do
-  ts <- case readTimestamp (BSC.unpack value) of
-          [(t, _)] -> return t
-          _ -> fail "expected one valid parse"
-  return $ m { mTimestamp = Just ts }
-
-readTimestamp :: String -> [(UTCTime, String)]
-readTimestamp = reads
-
-setDescription :: FieldProcessor
-setDescription desc m = Just $ m { mDesc = Just desc }
-
-setApply :: FieldProcessor
-setApply apply m = Just $ m { mApply = apply }
-
-setRevert :: FieldProcessor
-setRevert revert m = Just $ m { mRevert = Just revert }
-
-setDepends :: FieldProcessor
-setDepends depString m = Just $ m { mDeps = BSC.words depString }
