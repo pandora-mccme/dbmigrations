@@ -14,7 +14,6 @@ where
 
 import Data.ByteString (ByteString)
 import Data.Maybe ( fromJust )
-import Data.Monoid ( (<>) )
 import Data.Graph.Inductive.Graph ( Graph(..), nodes, edges, Node, suc, pre, lab )
 import Data.Graph.Inductive.PatriciaTree ( Gr )
 

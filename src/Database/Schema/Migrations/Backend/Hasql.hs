@@ -34,7 +34,7 @@ revertSql = "DROP TABLE " <> migrationTableName
 hasqlBackend :: Connection -> Backend
 hasqlBackend conn =
     Backend { isBootstrapped = do
-                exists <- run (statement () $ Statement "SELECT migration_id FROM installed_migrations WHERE FALSE" H.Encode.noParams noResult True) conn
+                exists <- run (statement () $ Statement "SELECT migration_id FROM installed_migrations WHERE FALSE" H.Encode.noParams noResult False) conn
                 return $ case exists of
                   Left _  -> False
                   Right _ -> True
