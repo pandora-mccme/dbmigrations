@@ -51,17 +51,19 @@ hasqlBackend conn =
                 run (sql "BEGIN") conn
                 reportAction <- run (sql $ mApply m) conn
                 case reportAction of
-                  Left e  -> reportSqlError e
+                  Left e  -> do
+                    run (sql "ABORT") conn
+                    reportSqlError e
                   Right i -> return i
                 register <- run (sql $ "INSERT INTO " <> migrationTableName <>
                           " (migration_id) VALUES ('" <> mId m <> "')") conn
                 case register of
                   Left e  -> do
+                    run (sql "ABORT") conn
                     reportSqlError e
-                    run (sql "ROLLBACK") conn
                   Right i -> do
-                    return i
                     run (sql "COMMIT") conn
+                    return i
                 return ()
 
             , revertMigration = \m -> do
