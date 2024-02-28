@@ -9,7 +9,6 @@ import qualified Data.ByteString as BS
 import qualified Data.ByteString.Char8 as BSC
 import Data.Time () -- for UTCTime Show instance
 import Data.Maybe ( catMaybes )
-import Data.Monoid ( (<>) )
 
 import Database.Schema.Migrations.Migration
     ( Migration(..)

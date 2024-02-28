@@ -16,7 +16,6 @@ import           Database.Schema.Migrations.Migration (Migration (..),
                                                        newMigration)
 
 import           Data.ByteString                      (ByteString)
-import           Data.Monoid                          ((<>))
 import           Data.Time.Clock                      (getCurrentTime)
 import           System.Exit                          (ExitCode (ExitFailure),
                                                        exitWith)
@@ -48,21 +47,21 @@ hasqlBackend conn =
                     }
 
             , applyMigration = \m -> do
-                run (sql "BEGIN") conn
+                _ <- run (sql "BEGIN") conn
                 reportAction <- run (sql $ mApply m) conn
                 case reportAction of
                   Left e  -> do
-                    run (sql "ABORT") conn
+                    _ <- run (sql "ABORT") conn
                     reportSqlError e
                   Right i -> return i
                 register <- run (sql $ "INSERT INTO " <> migrationTableName <>
                           " (migration_id) VALUES ('" <> mId m <> "')") conn
                 case register of
                   Left e  -> do
-                    run (sql "ABORT") conn
+                    _ <- run (sql "ABORT") conn
                     reportSqlError e
                   Right i -> do
-                    run (sql "COMMIT") conn
+                    _ <- run (sql "COMMIT") conn
                     return i
                 return ()
 

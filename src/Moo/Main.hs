@@ -9,7 +9,8 @@ module Moo.Main
     )
 where
 
-import  Control.Monad.Reader (forM_, runReaderT, when)
+import  Control.Monad (forM_, when)
+import  Control.Monad.Reader (runReaderT)
 import  Prelude  hiding (lookup)
 import  System.Environment (getProgName)
 import  System.Exit (ExitCode (ExitFailure), exitWith)
