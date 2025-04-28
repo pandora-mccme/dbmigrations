@@ -91,7 +91,7 @@ hasqlBackend conn =
             , disconnectBackend = release conn
             }
 
-reportSqlError :: QueryError -> IO a
+reportSqlError :: SessionError -> IO a
 reportSqlError e = do
   putStrLn $ "\n" <> "A database error occurred: " <> show e
   exitWith (ExitFailure 1)
